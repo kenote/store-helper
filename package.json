@@ -1,0 +1,39 @@
+{
+  "name": "kenote-store-helper",
+  "version": "1.0.0",
+  "description": "Upload Store's Helper.",
+  "main": "./dist/index.js",
+  "typings": "./src/index.d.ts",
+  "repository": "https://github.com/kenote/store-helper.git",
+  "author": "thondery <thondery@163.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/busboy": "^0.2.3",
+    "@types/bytes": "^3.0.0",
+    "@types/fs-extra": "^5.0.4",
+    "@types/lodash": "^4.14.119",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "busboy": "^0.2.14",
+    "bytes": "^3.0.0",
+    "fs-extra": "^7.0.1",
+    "lodash": "^4.17.11"
+  },
+  "peerDependencies": {
+    "fs-exists": "^7.0.1"
+  },
+  "engines": {
+    "node": ">8.0.0"
+  },
+  "keywords": [
+    "upload",
+    "store",
+    "helper",
+    "assistant",
+    "typescript"
+  ]
+}
