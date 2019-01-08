@@ -1,6 +1,6 @@
 {
   "name": "kenote-store-helper",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Upload Store's Helper.",
   "main": "./dist/index.js",
   "typings": "./src/index.d.ts",
@@ -24,7 +24,7 @@
     "lodash": "^4.17.11"
   },
   "peerDependencies": {
-    "fs-exists": "^7.0.1"
+    "fs-extra": "^7.0.1"
   },
   "engines": {
     "node": ">8.0.0"
