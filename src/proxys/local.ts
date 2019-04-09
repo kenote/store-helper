@@ -20,9 +20,9 @@ class LocalProxy {
     !fs.existsSync(rootDir) && fs.mkdirpSync(rootDir)
 
     file.on('end', (): void => done(null, {
-      key: sub_dir + newFilename,
+      key: (sub_dir || '') + newFilename,
       path: filePath,
-      url: newFilename + `?sub_dir=${(<string> sub_dir).replace(/(\/)$/, '')}`
+      url: newFilename + (sub_dir ? `?sub_dir=${(<string> sub_dir).replace(/(\/)$/, '')}` : '')
     }))
     file.pipe(fs.createWriteStream(filePath))
   }

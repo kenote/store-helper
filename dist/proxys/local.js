@@ -20,9 +20,9 @@ var LocalProxy = (function () {
         var filePath = path.resolve(rootDir, newFilename);
         !fs.existsSync(rootDir) && fs.mkdirpSync(rootDir);
         file.on('end', function () { return done(null, {
-            key: sub_dir + newFilename,
+            key: (sub_dir || '') + newFilename,
             path: filePath,
-            url: newFilename + ("?sub_dir=" + sub_dir.replace(/(\/)$/, ''))
+            url: newFilename + (sub_dir ? "?sub_dir=" + sub_dir.replace(/(\/)$/, '') : '')
         }); });
         file.pipe(fs.createWriteStream(filePath));
     };
