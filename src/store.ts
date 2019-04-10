@@ -9,22 +9,24 @@ export interface StoreSetting {
 }
 
 export interface StoreItem {
-  type: string;
-  root_dir?: string;
-  root_url?: string;
-  max_size: string;
-  mime_type?: string[];
-  original_name?: boolean;
+  type: string
+  root_dir?: string
+  root_url?: string
+  max_size: string
+  mime_type?: string[]
+  original_name?: boolean
+  user_dir?: boolean
+  name?: string
 }
 
 interface UploadSetting {
-  request: Request;
-  store?: StoreItem;
+  request: Request
+  store?: StoreItem
 }
 
 interface UploadError {
-  mimetype: number;
-  limit: number;
+  mimetype: number
+  limit: number
 }
 
 interface UploadProxy {
