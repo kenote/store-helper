@@ -1,142 +1,116 @@
-import * as path from 'path'
-import * as http from 'http'
 import * as busboy from 'busboy'
 import * as bytes from 'bytes'
-import { pick } from 'lodash'
+import { StroeSetting, Maps, IProxy, ConnectorSetting, Request, StroeOptions, ProxyResult, ProxyErrors } from '../types'
 
-export interface StoreSetting {
-  [propsName: string]: StoreItem;
-}
+/**
+ * 存储器类
+ */
+export class Store {
 
-export interface StoreItem {
-  type: string
-  root_dir?: string
-  root_url?: string
-  max_size: string
-  mime_type?: string[]
-  original_name?: boolean
-  user_dir?: boolean
-  name?: string
-}
+  /**
+   * 存储代理器
+   */
+  private __Proxys: Maps<IProxy>
 
-interface UploadSetting {
-  request: Request
-  store?: StoreItem
-}
+  /**
+   * 错误号
+   */
+  private __Errors: ProxyErrors
 
-interface UploadError {
-  mimetype: number
-  limit: number
-}
+  /**
+   * HTTP Request 对象
+   */
+  private __Request: Request
 
-interface UploadProxy {
-  [propsName: string]: Proxy
-}
+  /**
+   * 存储器选项
+   */
+  private __Options: StroeOptions
 
-interface Proxy {
-  upload: (file: NodeJS.ReadableStream, options: ProxyOptions, done: (err: any, doc: any) => void) => void
-}
-
-export interface ProxyOptions {
-  filename: string;
-  original_name?: boolean;
-  root_dir?: string;
-}
-
-export interface ProxyResult {
-  key: string;
-  path?: string;
-  url: string;
-  size?: number;
-}
-
-interface Request {
-  headers: http.IncomingHttpHeaders;
-  pipe: (destination: busboy.Busboy, options?: {
-      end?: boolean | undefined;
-  } | undefined) => busboy.Busboy;
-  query: any;
-}
-
-export class Upload {
-  private __Request: Request;
-
-  protected __Store: StoreItem;
-  private __Error: UploadError;
-  private __Proxy: UploadProxy;
-
-  constructor (setting: UploadSetting) {
+  constructor (setting: StroeSetting) {
     this.__Request = setting.request
-    this.__Store = setting.store || {
+    this.__Options = setting.options || {
       type: 'local',
       max_size: '4MB',
+      root_dir: 'uploadfiles'
     }
   }
 
-  public save (done: (err: number | null, doc: Array<string | ProxyResult>) => void): void {
+  /**
+   * 异步保存文件
+   * @param errInfo 
+   */
+  public asyncSave (errInfo: (code: number, opts?: any) => any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.__save((err, doc) => {
+        if (err) {
+          reject(errInfo(err, doc))
+        }
+        else {
+          let { root_url, type } = this.__Options
+          if (root_url && type === 'local') {
+            let data: ProxyResult[] = <ProxyResult[]> doc
+            data = data.map( item => ({ ...item, url: `${root_url}/${item.url}` }))
+            resolve(data)
+          }
+          else {
+            resolve(doc)
+          }
+          
+        }
+      })
+    })
+  }
+
+  private __save (done: (err: number | null, doc: Array<string | ProxyResult>) => void): void {
+    let { headers, query } = this.__Request
     let Busboy: busboy.Busboy = new busboy({
-      headers: this.__Request.headers,
+      headers,
       limits: {
-        fileSize: bytes(this.__Store.max_size)
+        fieldSize: bytes(this.__Options.max_size)
       }
     })
-    let { dir } = this.__Request.query
+    let dir: string | undefined = query.dir
     let sub_dir: string = ''
-    if (dir && this.__Store.type === 'local') {
-      sub_dir = (<string> dir).replace(/^(\/)|(\/)$/g, '') + '/'
+    if (dir && this.__Options.type === 'local') {
+      sub_dir = dir.replace(/^(\/)|(\/)$/g, '') + '/'
     }
     let files: ProxyResult[] = []
-    Busboy.on('file', (fieldname: string, file: NodeJS.ReadableStream, filename: string, encoding: string, mimetype: string): void => {
-      if(this.__Store.mime_type && this.__Store.mime_type.indexOf(mimetype) === -1) {
-        return done(this.__Error.mimetype, [mimetype])
+    Busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+      let { mime_type, max_size, type, root_dir, original_name } = this.__Options
+      if (mime_type && mime_type.indexOf(mimetype) === -1) {
+        return done(this.__Errors.mimetype, [mimetype])
       }
       let fileSize: number = 0
       file.on('data', (data: Buffer): void => {
         fileSize += data.length
       })
-      file.on('limit', (): void => {
-        return done(this.__Error.limit, [this.__Store.max_size])
+      file.on('limit', () => {
+        return done(this.__Errors.limit, [max_size])
       })
-      let proxy: Proxy = this.__Proxy[this.__Store.type]
+      let proxy: IProxy = this.__Proxys[type || 'local']
       proxy.upload(file, { 
-        filename: sub_dir + filename, 
-        root_dir: this.__Store.root_dir 
-      }, (err: number, result: ProxyResult): void => {
+        filename: sub_dir + filename,
+        root_dir,
+        original_name
+      }, (err, result) => {
         if (result) {
           files.push({ ...result, size: fileSize })
         }
       })
     })
-    Busboy.on('finish', () => done(null, files) )
+    Busboy.on('finish', () => done(null, files))
     this.__Request.pipe(Busboy)
   }
 }
 
-export function UploadSetting (error: UploadError, proxy: UploadProxy): any {
+/**
+ * 连接存储器
+ * @param setting ConnectorSetting
+ */
+export function Connect (setting: ConnectorSetting): any {
   return function (target: any): void {
-    target.prototype.__Error = error
-    target.prototype.__Proxy = proxy
-  }
-}
-
-export function parseResult (doc: ProxyResult[], store: StoreItem, root_url: string): ProxyResult[] {
-  let data: ProxyResult[] = [];
-  doc.forEach((item: ProxyResult, i) => {
-    let info: ProxyResult = pick(item, ['key', 'url', 'size'])
-    if (store.type === 'local' && store.root_url) {
-      info.url = store.root_url.replace(/^(\@)/, `${root_url}/`) + '/' + item.url
-    }
-    data.push(info)
-  })
-  return data
-}
-
-export function paeseStore (setting: StoreSetting | undefined, root: string): void {
-  if (!setting) return;
-  for (let store in setting) {
-    let item: StoreItem = setting[store]
-    if (item.root_dir) {
-      setting[store].root_dir = path.resolve(process.cwd(), item.root_dir.replace(/^(\@)/, `${root}/`))
-    }
+    target.prototype.__Proxys = setting.proxys
+    target.prototype.__Errors = setting.errors
   }
 }

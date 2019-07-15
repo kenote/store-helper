@@ -38,6 +38,7 @@ jspm_packages/
 package-lock.json
 yarn.lock
 dist/
+uploadfiles/
 
 # TypeScript v1 declaration files
 typings/
