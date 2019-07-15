@@ -10,7 +10,6 @@ Upload Store's Helper.
 ## Installation
 
 ```bash
-$ yarn add kenote-store-helper
 $ npm install kenote-store-helper
 # Or
 $ yarn add kenote-store-helper
