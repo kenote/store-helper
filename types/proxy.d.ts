@@ -1,4 +1,5 @@
 import { Maps } from './'
+
 /**
  * 存储代理器接口
  */
@@ -12,6 +13,20 @@ export interface IProxy {
    */
   upload (file: NodeJS.ReadableStream, options: ProxyOptions, done: (err: any, doc: ProxyResult) => void): void
 
+}
+
+/**
+ * 本地存储代理器
+ */
+export class localProxy implements IProxy {
+
+  /**
+   * 上传文件
+   * @param file NodeJS.ReadableStream
+   * @param options ProxyOptions
+   * @param done (err: any, doc: ProxyResult) => void
+   */
+  upload (file: NodeJS.ReadableStream, options: ProxyOptions, done: (err: any, doc: ProxyResult) => void): void
 }
 
 /**

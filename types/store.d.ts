@@ -1,6 +1,49 @@
 import * as http from 'http'
 import * as busboy from 'busboy'
-import {  Maps, IProxy, ProxyErrors } from './'
+import {  Maps, IProxy, ProxyErrors, ProxyResult } from './'
+
+/**
+ * 存储器类
+ */
+export class Store {
+
+  /**
+   * 存储代理器
+   */
+  private __Proxys: Maps<IProxy>
+
+  /**
+   * 错误号
+   */
+  private __Errors: ProxyErrors
+
+  /**
+   * HTTP Request 对象
+   */
+  private __Request: Request
+
+  /**
+   * 存储器选项
+   */
+  private __Options: StroeOptions
+
+  constructor (setting: StroeSetting)
+
+  /**
+   * 异步保存文件
+   * @param errInfo 
+   */
+  public asyncSave (errInfo: (code: number) => any): Promise<any>
+  public asyncSave (errInfo: (code: number, opts: any) => any): Promise<any>
+
+  private __save (done: (err: number | null, doc: Array<string | ProxyResult>) => void): void
+}
+
+/**
+ * 连接存储器
+ * @param setting ConnectorSetting
+ */
+export function Connect (setting: ConnectorSetting): any
 
 /**
  * 连接器配置

@@ -37,5 +37,3 @@ export default class Proxy implements IProxy {
     file.pipe(fs.createWriteStream(filePath))
   }
 }
-
-

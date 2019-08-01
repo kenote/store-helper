@@ -10,12 +10,12 @@ export class Store {
   /**
    * 存储代理器
    */
-  private __Proxys: Maps<IProxy>
+  private __Proxys?: Maps<IProxy>
 
   /**
    * 错误号
    */
-  private __Errors: ProxyErrors
+  private __Errors?: ProxyErrors
 
   /**
    * HTTP Request 对象
@@ -76,19 +76,21 @@ export class Store {
       sub_dir = dir.replace(/^(\/)|(\/)$/g, '') + '/'
     }
     let files: ProxyResult[] = []
+    let _errors: ProxyErrors = this.__Errors || { mimetype: 1, limit: 2 }
+    let _proxys: Maps<IProxy> = this.__Proxys || {}
     Busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
       let { mime_type, max_size, type, root_dir, original_name } = this.__Options
       if (mime_type && mime_type.indexOf(mimetype) === -1) {
-        return done(this.__Errors.mimetype, [mimetype])
+        return done(_errors.mimetype, [mimetype])
       }
       let fileSize: number = 0
       file.on('data', (data: Buffer): void => {
         fileSize += data.length
       })
       file.on('limit', () => {
-        return done(this.__Errors.limit, [max_size])
+        return done(_errors.limit, [max_size])
       })
-      let proxy: IProxy = this.__Proxys[type || 'local']
+      let proxy: IProxy = _proxys[type || 'local']
       proxy.upload(file, { 
         filename: sub_dir + filename,
         root_dir,
