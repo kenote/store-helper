@@ -67,7 +67,7 @@ export class Store {
     let Busboy: busboy.Busboy = new busboy({
       headers,
       limits: {
-        fieldSize: bytes(this.__Options.max_size)
+        fileSize: bytes(this.__Options.max_size)
       }
     })
     let dir: string | undefined = query.dir
