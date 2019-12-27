@@ -71,6 +71,7 @@ export class Store {
       }
     })
     let dir: string | undefined = query.dir
+    let _filename: string | undefined = query.filename
     let sub_dir: string = ''
     if (dir && this.__Options.type === 'local') {
       sub_dir = dir.replace(/^(\/)|(\/)$/g, '') + '/'
@@ -78,7 +79,7 @@ export class Store {
     let files: ProxyResult[] = []
     let _errors: ProxyErrors = this.__Errors || { mimetype: 1, limit: 2 }
     let _proxys: Maps<IProxy> = this.__Proxys || {}
-    Busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    Busboy.on('file', (fieldname: string, file: NodeJS.ReadableStream, filename: string, encoding: string, mimetype: string) => {
       let { mime_type, max_size, type, root_dir, original_name } = this.__Options
       if (mime_type && mime_type.indexOf(mimetype) === -1) {
         return done(_errors.mimetype, [mimetype])
@@ -92,10 +93,11 @@ export class Store {
       })
       let proxy: IProxy = _proxys[type || 'local']
       proxy.upload(file, { 
-        filename: sub_dir + filename,
+        filename: sub_dir + (_filename || filename),
         root_dir,
         original_name
       }, (err, result) => {
+        _filename = undefined
         if (result) {
           files.push({ ...result, size: fileSize })
         }
