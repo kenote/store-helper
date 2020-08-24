@@ -2,12 +2,10 @@
 all: install
 
 clear:
-	@rm -rf dist
 	@rm -rf uploadfiles
 	@rm -rf node_modules
 
 publish:
-	@rm -rf dist
 	@rm -rf uploadfiles
 	@rm -rf node_modules
 	@npm set registry https://registry.npmjs.org
